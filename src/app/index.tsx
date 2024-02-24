@@ -1,5 +1,7 @@
 import {View, Image, TouchableOpacity, TextInput, Text, FlatList, Alert} from "react-native"
 
+import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view"
+
 import { Feather } from '@expo/vector-icons'
 
 import colors from 'tailwindcss/colors'
@@ -65,6 +67,8 @@ export default function Home() {
             placeholderTextColor={colors.zinc[400]}
             value={name}
             onChangeText={setName}
+            onSubmitEditing={handleAddTodo}
+            returnKeyType="next"
             className="flex-1 p-4 bg-zinc-50 rounded-md font-body"
           />
 
@@ -73,7 +77,7 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
-        <View className="px-6">
+        <View className="px-6 pb-28">
           <View className="flex-row justify-between mb-5">
             <View className="flex-row items-center gap-2">
               <Text className="text-blue-400 font-bold">Criadas</Text>
