@@ -1,12 +1,56 @@
-import {View, Image, TouchableOpacity, TextInput, Text} from "react-native"
+import {View, Image, TouchableOpacity, TextInput, Text, FlatList, Alert} from "react-native"
 
 import { Feather } from '@expo/vector-icons'
 
 import colors from 'tailwindcss/colors'
 
 import logo from "@/assets/logo2.png"
+import clipboard from "@/assets/clipboard.png"
+
+import { Task, TodoProps  } from "@/components/task"
+
+import { useState } from "react"
+import { useTodoStore } from "@/store/todo-store"
+
 
 export default function Home() {
+  const todoStore = useTodoStore();
+
+  const [name, setName] = useState("");
+
+
+  function handleAddTodo() {
+    if (todoStore.todos.findIndex(todo => todo.title === name) === 0) {
+      Alert.alert("Tarefa já existente", "Já existe uma tarefa na lista com essa descrição")
+      return;
+    }
+
+    if (!name) {
+      Alert.alert("Tarefa sem descrição", "Digite uma descrição para a sua tarefa na caixa de texto")
+      return;
+    }
+
+    const todo = {title: name, completed: false }
+
+    todoStore.add(todo)
+    
+    setName("")
+  }
+
+  function handleRemoveTodo(title: string) {
+    Alert.alert("Remover a tarefa?", `${title}`, [
+      {text: "Cancelar",},
+      {
+        text: "Remover tarefa",
+        onPress: () => todoStore.remove(title)
+      },
+    ])
+  }
+  
+  function handleChangeTodo(title: string) {
+      todoStore.change(title)
+  }
+
   return (
     <View className="flex-1 items-center">
       <Image
@@ -15,19 +59,57 @@ export default function Home() {
       />
 
       <View className="flex-1 bg-zinc-800 w-full mt-16">
-        <View className="w-full flex flex-row gap-2 px-6 -mt-8">
+        <View className="w-full flex flex-row gap-2 px-6 -mt-8 mb-6 ">
           <TextInput
             placeholder="Adicione uma nova tarefa"
             placeholderTextColor={colors.zinc[400]}
+            value={name}
+            onChangeText={setName}
             className="flex-1 p-4 bg-zinc-50 rounded-md font-body"
           />
 
-          <TouchableOpacity className="p-4 rounded-md bg-blue-400 items-center justify-center">
+          <TouchableOpacity onPress={handleAddTodo} className="p-4 rounded-md bg-blue-400 items-center justify-center">
             <Feather name="plus-circle" size={24} color={colors.zinc[300]}/>
           </TouchableOpacity>
         </View>
 
-        <Text className="text-white text-center mt-16 text-2xl font-heading">Hello world!</Text>
+        <View className="px-6">
+          <View className="flex-row justify-between mb-5">
+            <View className="flex-row items-center gap-2">
+              <Text className="text-blue-400 font-bold">Criadas</Text>
+              <Text className="bg-zinc-600 font-bold text-zinc-300 py-0.5 px-2 rounded-sm">{todoStore.todos.length}</Text>
+            </View>
+         
+            <View className="flex-row items-center gap-2">
+              <Text className="text-violet-400 font-bold">Concluídas</Text>
+              <Text className="bg-zinc-600 font-bold text-zinc-300 py-0.5 px-2 rounded-sm">
+                {todoStore.todos.filter(todo => todo.completed).length}
+              </Text>
+            </View>
+          </View>
+
+          <FlatList 
+            data={todoStore.todos}
+            keyExtractor={todos => todos.title}
+            renderItem={({ item }) => (
+              <Task 
+              todo={item}
+              onRemove={() => handleRemoveTodo(item.title)}
+              onChange={() => handleChangeTodo(item.title)}
+              />
+            )}
+            showsVerticalScrollIndicator = {false}
+            ListEmptyComponent={() => (
+              <View className=" w-full h-52 items-center justify-center border-t-[1] border-zinc-700">
+                <Image source={clipboard}/>
+
+                <Text className="mt-4 text-zinc-500 font-bold"> Você ainda não tem tarefas criadas</Text>
+                <Text className="text-zinc-600"> Crie tarefas e organize seus itens a fazer</Text>
+              </View>
+            )}
+          />
+
+        </View>
       </View>
     </View>
 
